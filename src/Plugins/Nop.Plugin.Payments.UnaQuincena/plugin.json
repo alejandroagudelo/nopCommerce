@@ -1,0 +1,11 @@
+{
+  "Group": "Payment methods",
+  "FriendlyName": "Una Quincena",
+  "SystemName": "Payments.UnaQuincena",
+  "Version": "1.0",
+  "SupportedVersions": [ "4.10" ],
+  "Author": "Merca Ya",
+  "DisplayOrder": 1,
+  "FileName": "Nop.Plugin.Payments.UnaQuincena.dll",
+  "Description": "This plugin allows to pay to a fortnight"
+}
