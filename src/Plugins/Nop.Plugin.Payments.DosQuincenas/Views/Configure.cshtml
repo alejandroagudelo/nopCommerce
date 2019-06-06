@@ -2,10 +2,10 @@
 @{
     Layout = "_ConfigurePlugin";
 }
-@using Nop.Plugin.Payments.UnaQuincena.Models
+@using Nop.Plugin.Payments.DosQuincenas.Models
 
 @await Component.InvokeAsync("StoreScopeConfiguration")
-<form asp-controller="PaymentUnaQuincena" asp-action="Configure" method="post">
+<form asp-controller="PaymentDosQuincenas" asp-action="Configure" method="post">
     <div class="panel-group">
         <div class="panel panel-default">
             <div class="panel-body">

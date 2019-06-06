@@ -4,7 +4,7 @@ using System.Text;
 using Nop.Web.Framework.Models;
 using Nop.Web.Framework.Mvc.ModelBinding;
 
-namespace Nop.Plugin.Payments.UnaQuincena.Models
+namespace Nop.Plugin.Payments.DosQuincenas.Models
 {
     public class ConfigurationModel : BaseNopModel, ILocalizedModel<ConfigurationModel.ConfigurationLocalizedModel>
     {
@@ -15,7 +15,7 @@ namespace Nop.Plugin.Payments.UnaQuincena.Models
 
         public int ActiveStoreScopeConfiguration { get; set; }
 
-        [NopResourceDisplayName("Plugins.Payment.UnaQuincena.DescriptionText")]
+        [NopResourceDisplayName("Plugins.Payment.DosQuincenas.DescriptionText")]
         public string DescriptionText { get; set; }
         public bool DescriptionText_OverrideForStore { get; set; }
         public IList<ConfigurationLocalizedModel> Locales { get; set; }
@@ -26,7 +26,7 @@ namespace Nop.Plugin.Payments.UnaQuincena.Models
         {
             public int LanguageId { get; set; }
 
-            [NopResourceDisplayName("Plugins.Payment.UnaQuincena.DescriptionText")]
+            [NopResourceDisplayName("Plugins.Payment.DosQuincenas.DescriptionText")]
             public string DescriptionText { get; set; }
         }
 

@@ -1,0 +1,11 @@
+{
+  "Group": "Payment methods",
+  "FriendlyName": "Dos Quincenas",
+  "SystemName": "Payments.DosQuincenas",
+  "Version": "1.0",
+  "SupportedVersions": [ "4.20" ],
+  "Author": "Merca Ya",
+  "DisplayOrder": 1,
+  "FileName": "Nop.Plugin.Payments.DosQuincenas.dll",
+  "Description": "This plugin allows to pay to two fortnight"
+}
