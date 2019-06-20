@@ -1,0 +1,11 @@
+{
+  "Group": "Payment methods",
+  "FriendlyName": "Consignación Bancaria",
+  "SystemName": "Payments.ConsignacionBancaria",
+  "Version": "1.0",
+  "SupportedVersions": [ "4.20" ],
+  "Author": "Merca Ya",
+  "DisplayOrder": 1,
+  "FileName": "Nop.Plugin.Payments.ConsignacionBancaria.dll",
+  "Description": "This plugin allows to pay to two fortnight"
+}
