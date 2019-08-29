@@ -36,7 +36,6 @@ namespace Nop.Services.Orders
         private readonly IRewardPointService _rewardPointService;
         private readonly IShippingPluginManager _shippingPluginManager;
         private readonly IShippingService _shippingService;
-        private readonly IShoppingCartService _shoppingCartService;
         private readonly IStoreContext _storeContext;
         private readonly ITaxService _taxService;
         private readonly IWorkContext _workContext;
@@ -59,7 +58,6 @@ namespace Nop.Services.Orders
             IRewardPointService rewardPointService,
             IShippingPluginManager shippingPluginManager,
             IShippingService shippingService,
-            IShoppingCartService shoppingCartService,
             IStoreContext storeContext,
             ITaxService taxService,
             IWorkContext workContext,
@@ -78,7 +76,6 @@ namespace Nop.Services.Orders
             _rewardPointService = rewardPointService;
             _shippingPluginManager = shippingPluginManager;
             _shippingService = shippingService;
-            _shoppingCartService = shoppingCartService;
             _storeContext = storeContext;
             _taxService = taxService;
             _workContext = workContext;
@@ -367,17 +364,19 @@ namespace Nop.Services.Orders
         /// <param name="subTotalExclTax">Subtotal (excl tax)</param>
         /// <param name="updatedOrder">Order</param>
         /// <param name="customer">Customer</param>
+        /// <param name="shoppingCartRequiresShippingFunc">ShoppingCartRequiresShipping function</param>
         /// <param name="shippingTotalInclTax">Shipping (incl tax)</param>
         /// <param name="shippingTaxRate">Shipping tax rate</param>
         /// <returns>Shipping total</returns>
         protected virtual decimal UpdateShipping(UpdateOrderParameters updateOrderParameters, IList<ShoppingCartItem> restoredCart,
-            decimal subTotalInclTax, decimal subTotalExclTax, Order updatedOrder, Customer customer, out decimal shippingTotalInclTax, out decimal shippingTaxRate)
+            decimal subTotalInclTax, decimal subTotalExclTax, Order updatedOrder, Customer customer, 
+            Func<IList<ShoppingCartItem>,bool> shoppingCartRequiresShippingFunc, out decimal shippingTotalInclTax, out decimal shippingTaxRate)
         {
             var shippingTotalExclTax = decimal.Zero;
             shippingTotalInclTax = decimal.Zero;
             shippingTaxRate = decimal.Zero;
 
-            if (_shoppingCartService.ShoppingCartRequiresShipping(restoredCart))
+            if (shoppingCartRequiresShippingFunc(restoredCart))
             {
                 if (!IsFreeShipping(restoredCart, _shippingSettings.FreeShippingOverXIncludingTax ? subTotalInclTax : subTotalExclTax))
                 {
@@ -670,7 +669,7 @@ namespace Nop.Services.Orders
         protected virtual void AppliedGiftCards(IList<ShoppingCartItem> cart, List<AppliedGiftCard> appliedGiftCards,
             Customer customer, ref decimal resultTemp)
         {
-            if (_shoppingCartService.ShoppingCartIsRecurring(cart))
+            if (cart.Any(item => item.Product?.IsRecurring ?? false))
                 return;
 
             //we don't apply gift cards for recurring products
@@ -878,7 +877,9 @@ namespace Nop.Services.Orders
         /// </summary>
         /// <param name="updateOrderParameters">Parameters for the updating order</param>
         /// <param name="restoredCart">Shopping cart</param>
-        public virtual void UpdateOrderTotals(UpdateOrderParameters updateOrderParameters, IList<ShoppingCartItem> restoredCart)
+        /// <param name="shoppingCartRequiresShippingFunc">ShoppingCartRequiresShipping function</param>
+        public virtual void UpdateOrderTotals(UpdateOrderParameters updateOrderParameters, IList<ShoppingCartItem> restoredCart,
+            Func<IList<ShoppingCartItem>, bool> shoppingCartRequiresShippingFunc)
         {
             var updatedOrder = updateOrderParameters.UpdatedOrder;
             var updatedOrderItem = updateOrderParameters.UpdatedOrderItem;
@@ -890,7 +891,7 @@ namespace Nop.Services.Orders
             var subTotalExclTax = UpdateSubTotal(updateOrderParameters, restoredCart, updatedOrderItem, updatedOrder, customer, out var subTotalInclTax, out var subTotalTaxRates, out var discountAmountExclTax);
 
             //shipping
-            var shippingTotalExclTax = UpdateShipping(updateOrderParameters, restoredCart, subTotalInclTax, subTotalExclTax, updatedOrder, customer, out var shippingTotalInclTax, out var shippingTaxRate);
+            var shippingTotalExclTax = UpdateShipping(updateOrderParameters, restoredCart, subTotalInclTax, subTotalExclTax, updatedOrder, customer, shoppingCartRequiresShippingFunc, out var shippingTotalInclTax, out var shippingTaxRate);
 
             //tax rates
             var taxTotal = UpdateTaxRates(subTotalTaxRates, shippingTotalInclTax, shippingTotalExclTax, shippingTaxRate, updatedOrder);

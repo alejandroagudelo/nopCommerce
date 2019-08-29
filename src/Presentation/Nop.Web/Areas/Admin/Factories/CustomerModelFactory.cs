@@ -672,6 +672,9 @@ namespace Nop.Web.Areas.Admin.Factories
                 model.AllowReSendingOfActivationMessage = customer.IsRegistered() && !customer.Active &&
                     _customerSettings.UserRegistrationType == UserRegistrationType.EmailValidation;
                 model.GdprEnabled = _gdprSettings.GdprEnabled;
+                model.Quota = customer.Quota;
+                model.UsedQuota = customer.UsedQuota;
+
 
                 //whether to fill in some of properties
                 if (!excludeProperties)

@@ -1,3 +1,4 @@
+﻿using System;
 using System.Collections.Generic;
 using Nop.Core.Domain.Customers;
 using Nop.Core.Domain.Orders;
@@ -159,7 +160,9 @@ namespace Nop.Services.Orders
         /// </summary>
         /// <param name="updateOrderParameters">Parameters for the updating order</param>
         /// <param name="restoredCart">Shopping cart</param>
-        void UpdateOrderTotals(UpdateOrderParameters updateOrderParameters, IList<ShoppingCartItem> restoredCart);
+        /// <param name="shoppingCartRequiresShippingFunc">ShoppingCartRequiresShipping function</param>
+        void UpdateOrderTotals(UpdateOrderParameters updateOrderParameters, IList<ShoppingCartItem> restoredCart,
+            Func<IList<ShoppingCartItem>, bool> shoppingCartRequiresShippingFunc);
 
         /// <summary>
         /// Converts existing reward points to amount

@@ -43,6 +43,7 @@ using Nop.Services.Payments;
 using Nop.Services.Plugins;
 using Nop.Services.Plugins.Marketplace;
 using Nop.Services.Polls;
+using Nop.Services.Quota;
 using Nop.Services.Security;
 using Nop.Services.Seo;
 using Nop.Services.Shipping;
@@ -232,6 +233,7 @@ namespace Nop.Web.Framework.Infrastructure
             builder.RegisterType<ReviewTypeService>().As<IReviewTypeService>().SingleInstance();
             builder.RegisterType<EventPublisher>().As<IEventPublisher>().SingleInstance();
             builder.RegisterType<SettingService>().As<ISettingService>().InstancePerLifetimeScope();
+            builder.RegisterType<QuotaServices>().As<IQuotaServices>().InstancePerLifetimeScope();
 
             //plugin managers
             builder.RegisterGeneric(typeof(PluginManager<>)).As(typeof(IPluginManager<>)).InstancePerLifetimeScope();

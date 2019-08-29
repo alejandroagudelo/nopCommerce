@@ -591,6 +591,15 @@ namespace Nop.Services.Orders
             if (!orderTotal.HasValue)
                 throw new NopException("Order total couldn't be calculated");
 
+            //validate account quota if exsits
+            if(details.Customer.Quota.HasValue 
+                && details.Customer.UsedQuota.HasValue
+                && (details.Customer.Quota.Value - details.Customer.UsedQuota.Value) < orderTotal)
+                throw new NopException(string.Format(_localizationService.GetResource("Checkout.MaxOrderQuotaAmount"),
+                    _priceFormatter.FormatPrice(orderTotal.Value, true, false),
+                    _priceFormatter.FormatPrice(details.Customer.UsedQuota.Value, true, false)));
+
+
             details.OrderDiscountAmount = orderDiscountAmount;
             details.RedeemedRewardPoints = redeemedRewardPoints;
             details.RedeemedRewardPointsAmount = redeemedRewardPointsAmount;
@@ -1017,7 +1026,7 @@ namespace Nop.Services.Orders
             //set and save new order status
             order.OrderStatusId = (int)os;
             _orderService.UpdateOrder(order);
-
+            _eventPublisher.EntityChageSatatus(order);
             //order notes, notifications
             AddOrderNote(order, $"Order status has been changed to {os.ToString()}");
 
@@ -1642,7 +1651,7 @@ namespace Nop.Services.Orders
                     updatedShoppingCartItem.Product, updatedOrder.StoreId, updatedShoppingCartItem.AttributesXml, updatedShoppingCartItem.CustomerEnteredPrice,
                     updatedShoppingCartItem.RentalStartDateUtc, updatedShoppingCartItem.RentalEndDateUtc, updatedShoppingCartItem.Quantity, false, updatedShoppingCartItem.Id));
 
-            _orderTotalCalculationService.UpdateOrderTotals(updateOrderParameters, restoredCart);
+            _orderTotalCalculationService.UpdateOrderTotals(updateOrderParameters, restoredCart, _shoppingCartService.ShoppingCartRequiresShipping);
 
             if (updateOrderParameters.PickupPoint != null)
             {

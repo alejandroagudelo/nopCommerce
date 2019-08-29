@@ -160,6 +160,12 @@ namespace Nop.Web.Areas.Admin.Models.Customers
         [NopResourceDisplayName("Admin.Customers.Customers.Fields.Affiliate")]
         public string AffiliateName { get; set; }
 
+        [NopResourceDisplayName("Admin.Customers.Customers.Fields.Quota")]
+        public decimal? Quota { get; set; }
+
+        [NopResourceDisplayName("Admin.Customers.Customers.Fields.UsedQuota")]
+        public decimal? UsedQuota { get; set; }
+
         //time zone
         [NopResourceDisplayName("Admin.Customers.Customers.Fields.TimeZoneId")]
         public string TimeZoneId { get; set; }

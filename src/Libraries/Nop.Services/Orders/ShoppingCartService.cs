@@ -56,6 +56,7 @@ namespace Nop.Services.Orders
         private readonly IUrlHelperFactory _urlHelperFactory;
         private readonly IUrlRecordService _urlRecordService;
         private readonly IWorkContext _workContext;
+        private readonly IOrderTotalCalculationService _orderTotalCalculationService;
         private readonly OrderSettings _orderSettings;
         private readonly ShoppingCartSettings _shoppingCartSettings;
 
@@ -88,7 +89,8 @@ namespace Nop.Services.Orders
             IUrlRecordService urlRecordService,
             IWorkContext workContext,
             OrderSettings orderSettings,
-            ShoppingCartSettings shoppingCartSettings)
+            ShoppingCartSettings shoppingCartSettings,
+            IOrderTotalCalculationService orderTotalCalculationService)
         {
             _catalogSettings = catalogSettings;
             _aclService = aclService;
@@ -116,6 +118,8 @@ namespace Nop.Services.Orders
             _workContext = workContext;
             _orderSettings = orderSettings;
             _shoppingCartSettings = shoppingCartSettings;
+            _orderTotalCalculationService = orderTotalCalculationService;
+
         }
 
         #endregion
@@ -168,13 +172,13 @@ namespace Nop.Services.Orders
                 if (!customerEnteredPricesEqual)
                     return false;
             }
-            
-            if (!shoppingCartItem.Product.IsRental) 
+
+            if (!shoppingCartItem.Product.IsRental)
                 return true;
 
             //rental products
             var rentalInfoEqual = shoppingCartItem.RentalStartDateUtc == rentalStartDate && shoppingCartItem.RentalEndDateUtc == rentalEndDate;
-            
+
             return rentalInfoEqual;
         }
 
@@ -365,6 +369,62 @@ namespace Nop.Services.Orders
         }
 
         /// <summary>
+        /// Validates required products (products which require some other products to be added to the cart)
+        /// </summary>
+        /// <param name="customer">Customer</param>
+        /// <param name="shoppingCartType">Shopping cart type</param>
+        /// <param name="product">Product</param>
+        /// <param name="storeId">Store identifier</param>
+        /// <param name="quantity">Quantity</param>
+        /// <param name="addRequiredProducts">Whether to add required products</param>
+        /// <param name="shoppingCartItemId">Shopping cart identifier; pass 0 if it's a new item</param>
+        /// <returns>Warnings</returns>
+        public virtual IList<string> GetQuotaWarnings(Customer customer, ShoppingCartType shoppingCartType, Product product,
+            int storeId, int quantity, bool addRequiredProducts, int shoppingCartItemId)
+        {
+            var warnings = new List<string>();
+
+            //get customer shopping cart
+            var cart = GetShoppingCart(customer, shoppingCartType, storeId);
+
+            if (shoppingCartItemId == 0)
+            {
+                var shoppingCartItem = new ShoppingCartItem
+                {
+                    ShoppingCartType = shoppingCartType,
+                    StoreId = storeId,
+                    Product = product,
+                    Customer = customer,
+                    //CustomerEnteredPrice = customerEnteredPrice,
+                    Quantity = quantity,
+                };
+
+                cart.Add(shoppingCartItem);
+            }
+            else
+            {
+                cart.FirstOrDefault(x => x.Id == shoppingCartItemId).Quantity = quantity;
+            }
+
+            //order total (and applied discounts, gift cards, reward points)
+            var orderTotal = _orderTotalCalculationService.GetShoppingCartTotal(cart, out var orderDiscountAmount, out var orderAppliedDiscounts, out var appliedGiftCards, out var redeemedRewardPoints, out var redeemedRewardPointsAmount);
+            if (!orderTotal.HasValue)
+            {
+                warnings.Add("Order total couldn't be calculated");
+                return warnings;
+            }
+
+            if (customer.Quota.Value - customer.UsedQuota.Value < orderTotal)
+            {
+                warnings.Add(string.Format(_localizationService.GetResource("Checkout.MaxOrderQuotaAmount"),
+                    _priceFormatter.FormatPrice(orderTotal.Value, true, false),
+                    _priceFormatter.FormatPrice(customer.Quota.Value - customer.UsedQuota.Value, true, false)));
+            }
+
+            return warnings;
+        }
+
+        /// <summary>
         /// Validates a product for standard properties
         /// </summary>
         /// <param name="customer">Customer</param>
@@ -470,6 +530,7 @@ namespace Nop.Services.Orders
             {
                 warnings.Add(string.Format(_localizationService.GetResource("ShoppingCart.AllowedQuantities"), string.Join(", ", allowedQuantities)));
             }
+
 
             var validateOutOfStock = shoppingCartType == ShoppingCartType.ShoppingCart || !_shoppingCartSettings.AllowOutOfStockItemsToBeAddedToWishlist;
             if (validateOutOfStock && !hasQtyWarnings)
@@ -935,7 +996,14 @@ namespace Nop.Services.Orders
             if (product == null)
                 throw new ArgumentNullException(nameof(product));
 
+
             var warnings = new List<string>();
+
+            //Quotas
+            //validate account quota if exsits
+            if (shoppingCartType == ShoppingCartType.ShoppingCart && customer.Quota.HasValue && customer.UsedQuota.HasValue)
+                warnings.AddRange(GetQuotaWarnings(customer, shoppingCartType, product, storeId, quantity, addRequiredProducts, shoppingCartItemId));
+
 
             //standard properties
             if (getStandardWarnings)
@@ -956,6 +1024,7 @@ namespace Nop.Services.Orders
             //rental products
             if (getRentalWarnings)
                 warnings.AddRange(GetRentalProductWarnings(product, rentalStartDate, rentalEndDate));
+
 
             return warnings;
         }
@@ -1185,6 +1254,7 @@ namespace Nop.Services.Orders
                 shoppingCartType, product, attributesXml, customerEnteredPrice,
                 rentalStartDate, rentalEndDate);
 
+
             if (shoppingCartItem != null)
             {
                 //update existing shopping cart item
@@ -1245,6 +1315,7 @@ namespace Nop.Services.Orders
                     ShoppingCartType = shoppingCartType,
                     StoreId = storeId,
                     Product = product,
+                    Customer = customer,
                     AttributesXml = attributesXml,
                     CustomerEnteredPrice = customerEnteredPrice,
                     Quantity = quantity,
@@ -1253,6 +1324,8 @@ namespace Nop.Services.Orders
                     CreatedOnUtc = now,
                     UpdatedOnUtc = now
                 };
+
+
                 customer.ShoppingCartItems.Add(shoppingCartItem);
                 _customerService.UpdateCustomer(customer);
 
