@@ -205,7 +205,6 @@ namespace Nop.Services.Tests.Orders
                 _rewardPointService.Object,
                 _shippingPluginManager,
                 _shippingService,
-                _shoppingCartService.Object,
                 _storeContext.Object,
                 _taxService,
                 _workContext.Object,

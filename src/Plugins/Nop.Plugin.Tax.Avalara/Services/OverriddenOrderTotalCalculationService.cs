@@ -68,7 +68,6 @@ namespace Nop.Plugin.Tax.Avalara.Services
                 rewardPointService,
                 shippingPluginManager,
                 shippingService,
-                shoppingCartService,
                 storeContext,
                 taxService,
                 workContext,

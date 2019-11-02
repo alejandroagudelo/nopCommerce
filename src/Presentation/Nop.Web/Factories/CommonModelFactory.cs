@@ -362,6 +362,8 @@ namespace Nop.Web.Factories
             {
                 IsAuthenticated = customer.IsRegistered(),
                 CustomerName = customer.IsRegistered() ? _customerService.FormatUsername(customer) : "",
+                CustomerQuota = customer.Quota,
+                CustomerUsedQuota = customer.UsedQuota,
                 ShoppingCartEnabled = _permissionService.Authorize(StandardPermissionProvider.EnableShoppingCart),
                 WishlistEnabled = _permissionService.Authorize(StandardPermissionProvider.EnableWishlist),
                 AllowPrivateMessages = customer.IsRegistered() && _forumSettings.AllowPrivateMessages,
