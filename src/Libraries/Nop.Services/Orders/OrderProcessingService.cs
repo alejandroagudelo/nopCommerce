@@ -592,7 +592,7 @@ namespace Nop.Services.Orders
                 throw new NopException("Order total couldn't be calculated");
 
             //validate account quota if exsits
-            if(details.Customer.Quota.HasValue 
+            if(details.Customer.Quota.HasValue && details.Customer.Quota.Value > 0
                 && details.Customer.UsedQuota.HasValue
                 && (details.Customer.Quota.Value - details.Customer.UsedQuota.Value) < orderTotal)
                 throw new NopException(string.Format(_localizationService.GetResource("Checkout.MaxOrderQuotaAmount"),
